@@ -1,4 +1,4 @@
-
+from PIL import Image
 """
 Módulo de padding PKCS#7 para cifrados de bloque.
 Implementación manual sin usar bibliotecas externas.
@@ -81,9 +81,45 @@ def generate_aes_key(key_size: int = 256):
         raise ValueError("AES solo permite 128, 192 o 256 bits")
     
     return secrets.token_bytes(key_size // 8)
+
 def generate_iv(block_size: int = 8) -> bytes:
     """
     Genera un vector de inicialización (IV) aleatorio.
     """
     # TODO: Implementar
     return secrets.token_bytes(block_size)
+
+def png_to_ppm(png_path: str, ppm_path: str):
+    """
+    Convierte imagen png a ppm
+    """
+    img = Image.open(png_path)
+    img = img.convert("RGB")
+    img.save(ppm_path, format="PPM")
+
+def ppm_to_png(ppm_path: str, png_path: str):
+    """
+    Convierte imagen ppm a png
+    """
+    img = Image.open(ppm_path)
+    img.save(png_path, format="PNG")
+
+def split_ppm(ppm_path: str):
+    """
+    Separa header y body ppm
+    """
+    with open(ppm_path, "rb") as f:
+        lines = f.readlines()
+
+    header = lines[:3]
+    body = b"".join(lines[3:])
+
+    return header, body
+
+def build_ppm(header: bytes, body: bytes, output_path: str):
+    """
+    Guarda y construye imágenes ppgm
+    """
+    with open(output_path, "wb") as f:
+        f.writelines(header)
+        f.write(body)

@@ -1,8 +1,6 @@
-
 from Crypto.Cipher import DES
 from Crypto.Util.Padding import pad, unpad
 from utils import *
-
 
 def des_cipher(message: bytes, key: bytes) -> bytes:
     """
@@ -26,7 +24,6 @@ def des_decipher(message: bytes, key: bytes) -> bytes:
         key (str): la llave que vamos a uar para decifrar en bytes
     Returns:
         Retorna el mensaje decifrado
-
     """
     cipher = DES.new(key, DES.MODE_ECB)
     decrypted = cipher.decrypt(message)
