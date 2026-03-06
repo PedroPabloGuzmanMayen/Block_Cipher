@@ -63,6 +63,7 @@ if __name__ == '__main__':
 
     if not os.path.exists(image_path):
         print("La ruta no existe.")
+        exit(1)
 
     base_name = os.path.splitext(os.path.basename(image_path))[0]
 
@@ -72,42 +73,38 @@ if __name__ == '__main__':
     png_to_ppm(image_path, temp_ppm)
 
     header, body = split_ppm(temp_ppm)
+    original_size = len(body)  
 
-    print(f"Body size: {len(body)} bytes")
+    print(f"Body size: {original_size} bytes")
 
     key = generate_aes_key()
     iv = generate_iv(16)
 
     encrypted_ecb = aes_cipher_ebc(body, key)
-    build_ppm(header, encrypted_ecb, "ecb_encrypted.ppm")
+    build_ppm(header, encrypted_ecb[:original_size], "ecb_encrypted.ppm") 
     ppm_to_png("ecb_encrypted.ppm", f"{base_name}_ecb.png")
 
     decrypted_ecb = aes_decipher_ebc(encrypted_ecb, key)
-    build_ppm(header, decrypted_ecb, "ecb_decrypted.ppm")
+    build_ppm(header, decrypted_ecb[:original_size], "ecb_decrypted.ppm") 
     ppm_to_png("ecb_decrypted.ppm", f"{base_name}_ecb_decrypted.png")
 
     print("ECB procesado.")
 
     encrypted_cbc = aes_cipher_cbc(body, key, iv)
-    build_ppm(header, encrypted_cbc, "cbc_encrypted.ppm")
+    build_ppm(header, encrypted_cbc[:original_size], "cbc_encrypted.ppm") 
     ppm_to_png("cbc_encrypted.ppm", f"{base_name}_cbc.png")
 
     decrypted_cbc = aes_decipher_cbc(encrypted_cbc, key, iv)
-    build_ppm(header, decrypted_cbc, "cbc_decrypted.ppm")
+    build_ppm(header, decrypted_cbc[:original_size], "cbc_decrypted.ppm")  
     ppm_to_png("cbc_decrypted.ppm", f"{base_name}_cbc_decrypted.png")
 
     print("CBC procesado.")
 
     os.remove(temp_ppm)
 
-    print("\n Proceso terminado correctamente.")
+    print("\nProceso terminado correctamente.")
     print("Archivos generados:")
     print(f"- {base_name}_ecb.png")
     print(f"- {base_name}_cbc.png")
     print(f"- {base_name}_ecb_decrypted.png")
     print(f"- {base_name}_cbc_decrypted.png")
-
-
-
-
-

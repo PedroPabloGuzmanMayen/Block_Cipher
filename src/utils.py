@@ -1,4 +1,5 @@
 from PIL import Image
+import secrets
 """
 Módulo de padding PKCS#7 para cifrados de bloque.
 Implementación manual sin usar bibliotecas externas.
@@ -16,15 +17,15 @@ def pkcs7_pad(data: bytes, block_size: int = 8):
     >>> pkcs7_pad(b"12345678", 8).hex() # Exactamente 8 bytes
     '31323334353637380808080808080808' # + bloque completo
     """
-    padding_length = block_size - (len(data) % block_size)
-
+    padding_length = len(data) % block_size
     if padding_length == 0:
         padding_length = block_size
+    else:
+        padding_length = block_size - padding_length
 
     padding = bytes([padding_length]) * padding_length
     return data + padding
 
-    return True
 def pkcs7_unpad(data: bytes) -> bytes:
     """
     Elimina padding PKCS#7 de los datos.
@@ -48,11 +49,6 @@ def pkcs7_unpad(data: bytes) -> bytes:
 
     return data[:-padding_length]
 
-
-"""
-Generador de claves criptográficamente seguras.
-"""
-import secrets
 def generate_des_key():
     """
     Genera una clave DES aleatoria de 8 bytes (64 bits).
@@ -60,6 +56,7 @@ def generate_des_key():
     pero la clave es de 8 bytes.
     """
     return secrets.token_bytes(8)
+
 def generate_3des_key(key_option: int = 2):
     """
     Genera una clave 3DES aleatoria.
@@ -76,7 +73,6 @@ def generate_aes_key(key_size: int = 256):
     Genera una clave AES aleatoria.
     """
     # TODO: Implementar
-    # Convertir bits a bytes: key_size // 8
     if key_size not in (128, 192, 256):
         raise ValueError("AES solo permite 128, 192 o 256 bits")
     
@@ -123,3 +119,33 @@ def build_ppm(header: bytes, body: bytes, output_path: str):
     with open(output_path, "wb") as f:
         f.writelines(header)
         f.write(body)
+
+if __name__ == '__main__':
+
+    def analizar_padding(mensaje: bytes, block_size: int = 8):
+        padded = pkcs7_pad(mensaje, block_size)
+        padding_length = padded[-1]
+        padding_bytes = padded[len(mensaje):]
+        recovered = pkcs7_unpad(padded)
+
+        print(f"  Mensaje original : {mensaje} ({len(mensaje)} bytes)")
+        print(f"  Hex original     : {mensaje.hex()}")
+        print(f"  Bytes faltantes  : {block_size} - ({len(mensaje)} % {block_size}) = {padding_length}")
+        print(f"  Padding agregado : {padding_length} × 0x{padding_length:02x} → {padding_bytes.hex()}")
+        print(f"  Resultado padded : {padded.hex()}")
+        print(f"  Desglose         : [{mensaje.hex()}] + [{padding_bytes.hex()}]")
+        print(f"  pkcs7_unpad      : {recovered} ✅ == original: {recovered == mensaje}")
+        print()
+
+    print("=" * 60)
+    print("DEMOSTRACIÓN PKCS#7 — block_size = 8")
+    print("=" * 60)
+
+    print("\n Caso 1: Mensaje de 5 bytes → b'HOLA!'")
+    analizar_padding(b"HOLA!")
+
+    print(" Caso 2: Mensaje de 8 bytes → b'12345678'")
+    analizar_padding(b"12345678")
+
+    print(" Caso 3: Mensaje de 10 bytes → b'CRIPTOGRAF'")
+    analizar_padding(b"CRIPTOGRAF")

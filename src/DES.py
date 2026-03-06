@@ -29,9 +29,6 @@ def des_decipher(message: bytes, key: bytes) -> bytes:
     decrypted = cipher.decrypt(message)
     return pkcs7_unpad(decrypted)
 
-from Crypto.Cipher import DES
-from utils import *
-
 if __name__ == '__main__':
 
     print('=== DES ECB ===')
